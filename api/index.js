@@ -817,6 +817,9 @@ app.put("/update-plan/:id", (req, res) => {
   });
 });
 
+app.get("/test", (req, res) => {
+  res.json({ Status: "success", message: "Backend is working!" });
+});
 
 export default app;
 
