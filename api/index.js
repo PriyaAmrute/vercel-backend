@@ -35,7 +35,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
 
-const urlDB=`mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`
+const urlDB=`mysql://${{MYSQLUSER}}:${{MYSQL_ROOT_PASSWORD}}@${{RAILWAY_TCP_PROXY_DOMAIN}}:${{RAILWAY_TCP_PROXY_PORT}}/${{MYSQL_DATABASE}}`
 // mysql
 const db = mysql.createConnection(urlDB);
 
@@ -54,15 +54,7 @@ const verifyUser = (req, res, next) => {
     next();
   });
 };
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  // mock validation
-  if (email === "test@example.com" && password === "123456") {
-    return res.status(200).json({ message: 'Login successful' });
-  } else {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-});
+
 
 const verifyAdmin = (req, res, next) => {
   const token = req.cookies.token;
@@ -78,68 +70,68 @@ const verifyAdmin = (req, res, next) => {
 };
 
 // login with streak-based status
-// app.post("/login", (req, res) => {
-//   const { email, password } = req.body;
-//   db.query("SELECT * FROM login WHERE email=?", [email], (err, data) => {
-//     if (err) return res.json({ Status: "error", Error: err });
-//     if (data.length === 0)
-//       return res.json({ Status: "error", Error: "User not found" });
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  db.query("SELECT * FROM login WHERE email=?", [email], (err, data) => {
+    if (err) return res.json({ Status: "error", Error: err });
+    if (data.length === 0)
+      return res.json({ Status: "error", Error: "User not found" });
 
-//     bcrypt.compare(password, data[0].password, (err, result) => {
-//       if (err) return res.json({ Status: "error", Error: err });
-//       if (!result)
-//         return res.json({ Status: "error", Error: "Invalid credentials" });
+    bcrypt.compare(password, data[0].password, (err, result) => {
+      if (err) return res.json({ Status: "error", Error: err });
+      if (!result)
+        return res.json({ Status: "error", Error: "Invalid credentials" });
 
-//       // streak tracking
-//       let streak = 1;
-//       const today = new Date();
-//       const lastLogin = data[0].last_login ? new Date(data[0].last_login) : null;
+      // streak tracking
+      let streak = 1;
+      const today = new Date();
+      const lastLogin = data[0].last_login ? new Date(data[0].last_login) : null;
 
-//       if (lastLogin) {
-//         const diffDays = Math.floor(
-//           (today - lastLogin) / (1000 * 60 * 60 * 24)
-//         );
-//         if (diffDays === 1) {
-//           streak = data[0].login_streak + 1;
-//         }
-//       }
+      if (lastLogin) {
+        const diffDays = Math.floor(
+          (today - lastLogin) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays === 1) {
+          streak = data[0].login_streak + 1;
+        }
+      }
 
-//       // determine status
-//       let status = "inactive";
-//       if (data[0].role === "user" && streak >= 7) status = "active";
-//       if (data[0].role === "superadmin" && streak >= 15) status = "active";
+      // determine status
+      let status = "inactive";
+      if (data[0].role === "user" && streak >= 7) status = "active";
+      if (data[0].role === "superadmin" && streak >= 15) status = "active";
 
-//       // update DB
-//       db.query(
-//         "UPDATE login SET login_streak=?, last_login=?, status=? WHERE id=?",
-//         [streak, today, status, data[0].id],
-//         (updateErr) => {
-//           if (updateErr) console.log(updateErr);
-//         }
-//       );
+      // update DB
+      db.query(
+        "UPDATE login SET login_streak=?, last_login=?, status=? WHERE id=?",
+        [streak, today, status, data[0].id],
+        (updateErr) => {
+          if (updateErr) console.log(updateErr);
+        }
+      );
 
-//       // JWT token
-//       const token = jwt.sign(
-//         { email, role: data[0].role, id: data[0].id },
-//         "jwt-secret-key",
-//         { expiresIn: "1d" }
-//       );
-//       res.cookie("token", token, {
-//         httpOnly: true,
-//         sameSite: "lax",
-//         secure: false,
-//         maxAge: 24 * 60 * 60 * 1000,
-//       });
-//       res.json({
-//         Status: "success",
-//         role: data[0].role,
-//         name: data[0].name,
-//         profile: data[0].profile,
-//         status: status,
-//       });
-//     });
-//   });
-// });
+      // JWT token
+      const token = jwt.sign(
+        { email, role: data[0].role, id: data[0].id },
+        "jwt-secret-key",
+        { expiresIn: "1d" }
+      );
+      res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+      res.json({
+        Status: "success",
+        role: data[0].role,
+        name: data[0].name,
+        profile: data[0].profile,
+        status: status,
+      });
+    });
+  });
+});
 
 
 
