@@ -25,12 +25,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: 'https://vercel-frontend-henna-three.vercel.app',
+  credentials: true
+}));
 app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
@@ -823,6 +821,7 @@ app.put("/update-plan/:id", (req, res) => {
 
 
 // start
-// app.listen(8081, () => {
-//   console.log("✅ Server running on http://localhost:8081");
-// });  
+// // app.listen(8081, () => {
+// //   console.log("✅ Server running on https://vercel-backend-woad-phi.vercel.app
+// ");
+// // });  
