@@ -25,11 +25,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.use(express.json());
-cors({
-  origin: true, // WARNING: Dev only
-  credentials: true
-});
-
+app.use(cors({
+  origin: ['https://vercel-frontend-henna-three.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
