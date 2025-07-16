@@ -54,7 +54,15 @@ const verifyUser = (req, res, next) => {
     next();
   });
 };
-
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  // mock validation
+  if (email === "test@example.com" && password === "123456") {
+    return res.status(200).json({ message: 'Login successful' });
+  } else {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+});
 
 const verifyAdmin = (req, res, next) => {
   const token = req.cookies.token;
